@@ -1,0 +1,123 @@
+PARSER_BEGIN(Pascal)
+import java.io.*;
+public class Pascal {
+
+  public static void main(String args[]) throws ParseException,IOException {
+    
+    Pascal parser = new Pascal(new FileInputStream(args[0]));
+    parser.Programa();
+  }
+
+}
+
+PARSER_END(Pascal)
+
+SKIP :
+{
+  " "
+| "\t"
+| "\n"
+| "\r"
+}
+
+TOKEN :
+{
+  <PROGRAM: "program">
+| <INTEIRO: "integer">
+| <REAL: "real">
+| <VAR: "var">
+| <OF: "of">
+| <FUNCTION: "function">
+| <PROCEDURE: "procedure">
+| <LBRACE:"(">
+| <RBRACE: ")">
+| <SEMI: ";">
+| <DOT: ":">
+| <ARRAY: "array">
+| <LCOL: "[">
+| <RCOL: "]">
+| <NUM: ["0" - "9"](["0" - "9"])* >
+| <TRPOINT: ".." >
+}
+
+TOKEN :
+{
+ <OPERADOR_MULTIPLICATIVO: ("*"|"/"|"div"|"mod"|"and")>
+|
+<OPERADOR_ADITIVO: ("+"| "-" | "or")>
+|
+  < ID: ["a"-"z","A"-"Z"] ( ["a"-"z","A"-"Z","0"-"9"])*>
+
+}
+
+
+
+void Programa () :
+{}
+{ <PROGRAM> <ID> 
+  <LBRACE> Lista_de_idenDeclaracoes_de_subprogramas()tificadores() <RBRACE> <SEMI> 
+  Declaracoes() 
+//   Declaracoes_de_subprogramas() Enunciado_composto() "."
+  <EOF> 
+}
+	
+
+void Lista_de_identificadores():
+{}
+{
+  <ID> Lista2()
+}
+
+void Lista2():
+{}
+{
+ ("," <ID> Lista2())?
+}
+
+void Declaracoes() :
+{}
+{
+   ( <VAR> Lista_de_identificadores() <DOT> type() <SEMI> Declaracoes2() )?
+}
+
+void Declaracoes2() :
+{}
+{
+  ( <VAR> Lista_de_identificadores() <DOT> type() <SEMI> Declaracoes2() )?
+}
+
+void types():
+{}
+{
+  <INTEIRO> | <REAL>
+}
+
+void type():
+{}
+{
+  <ARRAY> <LCOL> <NUM> <TRPOINT> <NUM> <RCOL> <OF> types() | types()
+}
+
+void Declaracoes_de_subprogramas():
+{}
+{
+  Declaracoes_de_subprogramas2()
+}
+
+void Declaracoes_de_subprogramas2():
+{}
+{
+  (declaracao_de_subprograma() )?
+}
+
+void declaracao_de_subprograma()
+{}
+{
+  cabecalho_de_subprograma() Declaracoes() Enunciado_composto()
+}
+
+void cabecalho_de_subprograma()
+{}
+{
+  <FUNCTION> <ID> 
+}
