@@ -1,3 +1,7 @@
+options
+{
+  LOOKAHEAD = 3;
+}
 PARSER_BEGIN(Pascal)
 import java.io.*;
 public class Pascal {
@@ -9,6 +13,7 @@ public class Pascal {
   }
 
 }
+
 
 PARSER_END(Pascal)
 
@@ -181,10 +186,10 @@ void lista_de_enunciados2():
 void enunciado():
 {}
 {
+  enunciado2() |
   variavel() <ATRIB> expressao() |
   chamada_de_procedimento() |
-  Enunciado_composto() |
-  enunciado2()
+  Enunciado_composto()
 }
 
 void enunciado2():
