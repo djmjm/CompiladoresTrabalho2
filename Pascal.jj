@@ -1,7 +1,4 @@
-options
-{
-  LOOKAHEAD = 3;
-}
+
 PARSER_BEGIN(Pascal)
 import java.io.*;
 public class Pascal {
@@ -53,8 +50,7 @@ TOKEN :
 | <DO: "do">
 |<OPERADOR_RELACIONAL: ("=" | "<>" | "<" | "<=" | ">=" | ">") >
 | <NOT: "not" >
-| <MAIS: "+">
-| <MENOS: "-">
+| <COMMA: ",">
 }
 
 TOKEN :
@@ -64,7 +60,6 @@ TOKEN :
 <OPERADOR_ADITIVO: ("+"| "-" | "or")>
 |
   < ID: ["a"-"z","A"-"Z"] ( ["a"-"z","A"-"Z","0"-"9"])*>
-
 }
 
 
@@ -72,9 +67,9 @@ TOKEN :
 void Programa () :
 {}
 { <PROGRAM> <ID> 
-  <LBRACE> lista_de_identificadores() Declaracoes_de_subprogramas() <RBRACE> <SEMI> 
-  Declaracoes() 
-   Declaracoes_de_subprogramas() Enunciado_composto() "."
+  <LBRACE> lista_de_identificadores() <RBRACE> <SEMI> 
+  //Declaracoes() 
+   Declaracoes_de_subprogramas() "."
   <EOF> 
 }
 	
@@ -94,13 +89,13 @@ void Lista2():
 void Declaracoes() :
 {}
 {
-   ( <VAR> lista_de_identificadores() <DOT> type() <SEMI> Declaracoes2() )?
+   Declaracoes2()
 }
 
 void Declaracoes2() :
 {}
 {
-  ( <VAR> lista_de_identificadores() <DOT> type() <SEMI> Declaracoes2() )?
+  ( <VAR> lista_de_identificadores() <DOT> type()  )
 }
 
 void types():
@@ -118,155 +113,149 @@ void type():
 void Declaracoes_de_subprogramas():
 {}
 {
-  Declaracoes_de_subprogramas2()
+  (Declaracao_de_subprograma() <SEMI> Declaracoes_de_subprogramas() )?
 }
 
-void Declaracoes_de_subprogramas2():
+void Declaracao_de_subprograma():
 {}
 {
-  (declaracao_de_subprograma() )?
+  Cabecalho_de_subprograma() | Declaracoes() | Enunciado_composto()
 }
 
-void declaracao_de_subprograma():
+void Cabecalho_de_subprograma():
 {}
 {
-  cabecalho_de_subprograma() Declaracoes() Enunciado_composto()
+  <FUNCTION> <ID> Argumentos() <DOT> types() |
+  <PROCEDURE> <ID> Argumentos()
+
 }
 
-void cabecalho_de_subprograma():
+void Argumentos():
 {}
 {
-  <FUNCTION> <ID> argumentos() <DOT> types() <SEMI> | 
-  <PROCEDURE> <ID> argumentos() <SEMI> 
+  <LBRACE> Lista_de_parametros() <RBRACE>
 }
 
-void argumentos():
+void Lista_de_parametros():
 {}
 {
-  ( <LBRACE> lista_de_parametros() <RBRACE> )?
+  lista_de_identificadores() <DOT> type() Lista_de_parametros2()
 }
 
-void lista_de_parametros():
+void Lista_de_parametros2():
 {}
 {
-  lista_de_identificadores() <DOT> type() |
-  lista_de_parametros2()
-}
-
-void lista_de_parametros2():
-{}
-{
-  (  <DOT> lista_de_identificadores() <DOT> type() lista_de_parametros2())?
+  (lista_de_identificadores() <DOT> type() Lista_de_parametros2())?
 }
 
 void Enunciado_composto():
 {}
 {
-  <BEGIN> enunciados_opcionais() <END>
+  <BEGIN> Enunciados_opcionais() <END>
 }
 
-void enunciados_opcionais():
+void Enunciados_opcionais():
 {}
 {
-  ( lista_de_enunciados() )?
+  (Lista_de_enunciados() )?
 }
 
-void lista_de_enunciados():
+void Lista_de_enunciados():
 {}
 {
-  enunciado() | lista_de_enunciados2()
+  Enunciado() Lista_de_enunciados2()
 }
 
-void lista_de_enunciados2():
+void Lista_de_enunciados2():
 {}
 {
- <DOT> enunciado() lista_de_enunciados()
+  (<SEMI> Enunciado() Lista_de_enunciados2() )?
 }
 
-void enunciado():
+void Enunciado():
 {}
 {
-  enunciado2() |
-  variavel() <ATRIB> expressao() |
-  chamada_de_procedimento() |
-  Enunciado_composto()
+  <ID> Enunciado2() | Enunciado_composto() | <IF> Expressao() <THEN> Enunciado() <ELSE> Enunciado() |
+  <WHILE> Expressao() <DO> Enunciado()
 }
 
-void enunciado2():
+void Enunciado2():
 {}
 {
-  <IF> expressao() <THEN> enunciado() <ELSE> enunciado() |
-  <WHILE> expressao() <DO> enunciado()
+  Variavel() <ATRIB> Expressao() | Chamada_de_procedimento()
 }
 
-void variavel():
+void Variavel():
 {}
 {
-  <ID> | <ID> <LCOL> expressao() <RCOL>
+  (<LCOL> Expressao() <RCOL>)?
 }
 
-void chamada_de_procedimento():
+void Chamada_de_procedimento():
 {}
 {
-  <ID> | <ID> <LBRACE> lista_de_expressoes() <RBRACE>
+  (<LBRACE> Lista_de_expressoes() <RBRACE>)?
 }
 
-void lista_de_expressoes():
+void Expressao():
 {}
 {
-  expressao() | lista_de_expressoes2()
+  Expressao_simples() Expressao2()
 }
-void lista_de_expressoes2():
+void Expressao2():
 {}
 {
-  expressao() lista_de_expressoes()
-}
-
-void expressao():
-{}
-{
-  expressao_simples() | expressao_simples() <OPERADOR_RELACIONAL> expressao_simples()
+  (<OPERADOR_RELACIONAL> Expressao_simples() )?
 }
 
-void expressao_simples():
+void Lista_de_expressoes():
 {}
 {
-  termo() |
-  sinal() termo() |
-  expressao_simples2()
+  Expressao() Lista_de_expressoes2()
 }
 
-void expressao_simples2():
+void Lista_de_expressoes2():
 {}
 {
-   termo() <OPERADOR_ADITIVO> expressao_simples()
+  (<COMMA> Expressao() Lista_de_expressoes2() )?
 }
 
-void termo():
+void Expressao_simples():
 {}
 {
-  fator() |
-  termo2()
+  Termo() Expressao_simples2()
 }
 
-void termo2():
+void Expressao_simples2():
 {}
 {
-  fator() <OPERADOR_MULTIPLICATIVO> termo2()
+  (<OPERADOR_ADITIVO> Termo() Expressao_simples2() )?
 }
 
-void fator():
+
+void Termo():
 {}
 {
-  <ID> |
-  <ID> <LBRACE> lista_de_expressoes() <RBRACE> |
-  <NUM>  |
-  <LBRACE> expressao() <RBRACE> |
-  <NOT> fator()
+  Fator() Termo2()
 }
 
-void sinal():
+void Termo2():
 {}
 {
-  <MAIS> | <MENOS> 
+  ( <OPERADOR_MULTIPLICATIVO> Fator() Termo2() )?
+}
+
+void Fator():
+{}
+{
+  <ID> Fator2() |
+  <NUM> |
+  <LBRACE> Expressao() <RBRACE> |
+  <NOT> Fator()
+}
+
+void Fator2():
+{}
+{
+  (<LBRACE> Lista_de_expressoes() <RBRACE> )?
 }
